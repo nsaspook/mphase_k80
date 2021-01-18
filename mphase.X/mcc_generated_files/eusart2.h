@@ -13,12 +13,12 @@
   @Description
     This header file provides APIs for driver for EUSART2.
     Generation Information :
-        Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs - 1.65.2
+        Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs - 1.81.6
         Device            :  PIC18F45K80
-        Driver Version    :  2.01
+        Driver Version    :  2.1.0
     The generated drivers are tested against the following:
-        Compiler          :  XC8 1.45
-        MPLAB 	          :  MPLAB X 4.15
+        Compiler          :  XC8 2.30 and above
+        MPLAB 	          :  MPLAB X 5.40
 */
 
 /*
@@ -73,6 +73,16 @@
   Section: Data Type Definitions
 */
 
+typedef union {
+    struct {
+        unsigned perr : 1;
+        unsigned ferr : 1;
+        unsigned oerr : 1;
+        unsigned reserved : 5;
+    };
+    uint8_t status;
+}eusart2_status_t;
+
 /**
  Section: Global variables
  */
@@ -82,9 +92,8 @@ extern volatile uint8_t eusart2RxCount;
 /**
   Section: EUSART2 APIs
 */
-
-void (*EUSART2_TxDefaultInterruptHandler)(void);
-void (*EUSART2_RxDefaultInterruptHandler)(void);
+extern void (*EUSART2_TxDefaultInterruptHandler)(void);
+extern void (*EUSART2_RxDefaultInterruptHandler)(void);
 
 /**
   @Summary
@@ -110,11 +119,11 @@ void EUSART2_Initialize(void);
 
 /**
   @Summary
-    Checks if the EUSART2 transmitter is ready
+    Checks if the EUSART2 transmitter is ready to transmit data
 
   @Description
-    This routine checks if EUSART2 transmitter is empty and ready
-    for next transmission
+    This routine checks if EUSART2 transmitter is ready 
+    to accept and transmit data byte
 
   @Preconditions
     EUSART2_Initialize() function should have been called
@@ -126,8 +135,9 @@ void EUSART2_Initialize(void);
     None
 
   @Returns
-    The number of available bytes that EUSART2 has remaining in 
-    its transmit buffer
+    Status of EUSART2 transmitter
+    TRUE: EUSART2 transmitter is ready
+    FALSE: EUSART2 transmitter is not ready
     
   @Example
     <code>
@@ -138,11 +148,53 @@ void EUSART2_Initialize(void);
         // Initialize the device
         SYSTEM_Initialize();
         
-        // Enable the Global Interrupts
-        INTERRUPT_GlobalInterruptEnable();
+        while(1)
+        {
+            // Logic to echo received data
+            if(EUSART2_is_rx_ready())
+            {
+                rxData = UART1_Read();
+                if(EUSART2_is_tx_ready())
+                {
+                    EUSART2Write(rxData);
+                }
+            }
+        }
+    }
+    </code>
+*/
+bool EUSART2_is_tx_ready(void);
 
-        // Enable the Peripheral Interrupts
-        INTERRUPT_PeripheralInterruptEnable();
+/**
+  @Summary
+    Checks if the EUSART2 receiver ready for reading
+
+  @Description
+    This routine checks if EUSART2 receiver has received data 
+    and ready to be read
+
+  @Preconditions
+    EUSART2_Initialize() function should be called
+    before calling this function
+    EUSART2 receiver should be enabled before calling this 
+    function
+
+  @Param
+    None
+
+  @Returns
+    Status of EUSART2 receiver
+    TRUE: EUSART2 receiver is ready for reading
+    FALSE: EUSART2 receiver is not ready for reading
+    
+  @Example
+    <code>
+    void main(void)
+    {
+        volatile uint8_t rxData;
+        
+        // Initialize the device
+        SYSTEM_Initialize();
         
         while(1)
         {
@@ -159,59 +211,7 @@ void EUSART2_Initialize(void);
     }
     </code>
 */
-uint8_t EUSART2_is_tx_ready(void);
-
-/**
-  @Summary
-    Checks if EUSART2 receiver is empty
-
-  @Description
-    This routine returns the available number of bytes to be read 
-    from EUSART2 receiver
-
-  @Preconditions
-    EUSART2_Initialize() function should be called
-    before calling this function
-    EUSART2 receiver should be enabled before calling this 
-    function
-
-  @Param
-    None
-
-  @Returns
-    The number of bytes EUSART2 has available for reading
-    
-  @Example
-    <code>
-    void main(void)
-    {
-        volatile uint8_t rxData;
-        
-        // Initialize the device
-        SYSTEM_Initialize();
-        
-        // Enable the Global Interrupts
-        INTERRUPT_GlobalInterruptEnable();
-        
-        // Enable the Peripheral Interrupts
-        INTERRUPT_PeripheralInterruptEnable();
-        
-        while(1)
-        {
-            // Logic to echo received data
-            if(EUSART2_is_rx_ready())
-            {
-                rxData = UART1_Read();
-                if(EUSART2_is_tx_ready())
-                {
-                    EUSART2T_Write(rxData);
-                }
-            }
-        }
-    }
-    </code>
-*/
-uint8_t EUSART2_is_rx_ready(void);
+bool EUSART2_is_rx_ready(void);
 
 /**
   @Summary
@@ -259,6 +259,54 @@ uint8_t EUSART2_is_rx_ready(void);
     </code>
 */
 bool EUSART2_is_tx_done(void);
+
+/**
+  @Summary
+    Gets the error status of the last read byte.
+
+  @Description
+    This routine gets the error status of the last read byte.
+
+  @Preconditions
+    EUSART2_Initialize() function should have been called
+    before calling this function. The returned value is only
+    updated after a read is called.
+
+  @Param
+    None
+
+  @Returns
+    the status of the last read byte
+
+  @Example
+	<code>
+    void main(void)
+    {
+        volatile uint8_t rxData;
+        volatile eusart2_status_t rxStatus;
+        
+        // Initialize the device
+        SYSTEM_Initialize();
+        
+        // Enable the Global Interrupts
+        INTERRUPT_GlobalInterruptEnable();
+        
+        while(1)
+        {
+            // Logic to echo received data
+            if(EUSART2_is_rx_ready())
+            {
+                rxData = EUSART2_Read();
+                rxStatus = EUSART2_get_last_status();
+                if(rxStatus.ferr){
+                    LED_0_SetHigh();
+                }
+            }
+        }
+    }
+    </code>
+ */
+eusart2_status_t EUSART2_get_last_status(void);
 
 /**
   @Summary
@@ -341,6 +389,81 @@ void EUSART2_Transmit_ISR(void);
     None
 */
 void EUSART2_Receive_ISR(void);
+
+/**
+  @Summary
+    Maintains the driver's receiver state machine
+
+  @Description
+    This routine is called by the receive state routine and is used to maintain 
+    the driver's internal receiver state machine. It should be called by a custom
+    ISR to maintain normal behavior
+
+  @Preconditions
+    EUSART2_Initialize() function should have been called
+    for the ISR to execute correctly.
+
+  @Param
+    None
+
+  @Returns
+    None
+*/
+void EUSART2_RxDataHandler(void);
+
+/**
+  @Summary
+    Set EUSART2 Framing Error Handler
+
+  @Description
+    This API sets the function to be called upon EUSART2 framing error
+
+  @Preconditions
+    Initialize  the EUSART2 before calling this API
+
+  @Param
+    Address of function to be set as framing error handler
+
+  @Returns
+    None
+*/
+void EUSART2_SetFramingErrorHandler(void (* interruptHandler)(void));
+
+/**
+  @Summary
+    Set EUSART2 Overrun Error Handler
+
+  @Description
+    This API sets the function to be called upon EUSART2 overrun error
+
+  @Preconditions
+    Initialize  the EUSART2 module before calling this API
+
+  @Param
+    Address of function to be set as overrun error handler
+
+  @Returns
+    None
+*/
+void EUSART2_SetOverrunErrorHandler(void (* interruptHandler)(void));
+
+/**
+  @Summary
+    Set EUSART2 Error Handler
+
+  @Description
+    This API sets the function to be called upon EUSART2 error
+
+  @Preconditions
+    Initialize  the EUSART2 module before calling this API
+
+  @Param
+    Address of function to be set as error handler
+
+  @Returns
+    None
+*/
+void EUSART2_SetErrorHandler(void (* interruptHandler)(void));
 
 /**
   @Summary

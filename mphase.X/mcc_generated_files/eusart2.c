@@ -13,12 +13,12 @@
   @Description
     This source file provides APIs for EUSART2.
     Generation Information :
-        Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs - 1.65.2
+        Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs - 1.81.6
         Device            :  PIC18F45K80
-        Driver Version    :  2.01
+        Driver Version    :  2.1.0
     The generated drivers are tested against the following:
-        Compiler          :  XC8 1.45
-        MPLAB 	          :  MPLAB X 4.15
+        Compiler          :  XC8 2.30 and above
+        MPLAB 	          :  MPLAB X 5.40
 */
 
 /*
@@ -54,7 +54,7 @@
 */
 
 #define EUSART2_TX_BUFFER_SIZE 64
-#define EUSART2_RX_BUFFER_SIZE 8
+#define EUSART2_RX_BUFFER_SIZE 64
 
 /**
   Section: Global Variables
@@ -67,11 +67,24 @@ volatile uint8_t eusart2TxBufferRemaining;
 volatile uint8_t eusart2RxHead = 0;
 volatile uint8_t eusart2RxTail = 0;
 volatile uint8_t eusart2RxBuffer[EUSART2_RX_BUFFER_SIZE];
+volatile eusart2_status_t eusart2RxStatusBuffer[EUSART2_RX_BUFFER_SIZE];
 volatile uint8_t eusart2RxCount;
+volatile eusart2_status_t eusart2RxLastError;
 
 /**
   Section: EUSART2 APIs
 */
+void (*EUSART2_TxDefaultInterruptHandler)(void);
+void (*EUSART2_RxDefaultInterruptHandler)(void);
+
+void (*EUSART2_FramingErrorHandler)(void);
+void (*EUSART2_OverrunErrorHandler)(void);
+void (*EUSART2_ErrorHandler)(void);
+
+void EUSART2_DefaultFramingErrorHandler(void);
+void EUSART2_DefaultOverrunErrorHandler(void);
+void EUSART2_DefaultErrorHandler(void);
+
 void EUSART2_Initialize(void)
 {
     // disable interrupts before changing states
@@ -97,6 +110,12 @@ void EUSART2_Initialize(void)
     SPBRGH2 = 0x06;
 
 
+    EUSART2_SetFramingErrorHandler(EUSART2_DefaultFramingErrorHandler);
+    EUSART2_SetOverrunErrorHandler(EUSART2_DefaultOverrunErrorHandler);
+    EUSART2_SetErrorHandler(EUSART2_DefaultErrorHandler);
+
+    eusart2RxLastError.status = 0;
+
     // initializing the driver state
     eusart2TxHead = 0;
     eusart2TxTail = 0;
@@ -110,19 +129,23 @@ void EUSART2_Initialize(void)
     PIE3bits.RC2IE = 1;
 }
 
-uint8_t EUSART2_is_tx_ready(void)
+bool EUSART2_is_tx_ready(void)
 {
-    return eusart2TxBufferRemaining;
+    return (eusart2TxBufferRemaining ? true : false);
 }
 
-uint8_t EUSART2_is_rx_ready(void)
+bool EUSART2_is_rx_ready(void)
 {
-    return eusart2RxCount;
+    return (eusart2RxCount ? true : false);
 }
 
 bool EUSART2_is_tx_done(void)
 {
     return TXSTA2bits.TRMT;
+}
+
+eusart2_status_t EUSART2_get_last_status(void){
+    return eusart2RxLastError;
 }
 
 uint8_t EUSART2_Read(void)
@@ -132,6 +155,8 @@ uint8_t EUSART2_Read(void)
     while(0 == eusart2RxCount)
     {
     }
+
+    eusart2RxLastError = eusart2RxStatusBuffer[eusart2RxTail];
 
     readValue = eusart2RxBuffer[eusart2RxTail++];
     if(sizeof(eusart2RxBuffer) <= eusart2RxTail)
@@ -200,21 +225,61 @@ void EUSART2_Transmit_ISR(void)
 void EUSART2_Receive_ISR(void)
 {
     
-    if(1 == RCSTA2bits.OERR)
-    {
-        // EUSART2 error - restart
+    eusart2RxStatusBuffer[eusart2RxHead].status = 0;
 
-        RCSTA2bits.CREN = 0;
-        RCSTA2bits.CREN = 1;
+    if(RCSTA2bits.FERR){
+        eusart2RxStatusBuffer[eusart2RxHead].ferr = 1;
+        EUSART2_FramingErrorHandler();
     }
 
-    // buffer overruns are ignored
+    if(RCSTA2bits.OERR){
+        eusart2RxStatusBuffer[eusart2RxHead].oerr = 1;
+        EUSART2_OverrunErrorHandler();
+    }
+    
+    if(eusart2RxStatusBuffer[eusart2RxHead].status){
+        EUSART2_ErrorHandler();
+    } else {
+        EUSART2_RxDataHandler();
+    }
+    
+    // or set custom function using EUSART2_SetRxInterruptHandler()
+}
+
+void EUSART2_RxDataHandler(void){
+    // use this default receive interrupt handler code
     eusart2RxBuffer[eusart2RxHead++] = RCREG2;
     if(sizeof(eusart2RxBuffer) <= eusart2RxHead)
     {
         eusart2RxHead = 0;
     }
     eusart2RxCount++;
+}
+
+void EUSART2_DefaultFramingErrorHandler(void){}
+
+void EUSART2_DefaultOverrunErrorHandler(void){
+    // EUSART2 error - restart
+
+    RCSTA2bits.CREN = 0;
+    RCSTA2bits.CREN = 1;
+
+}
+
+void EUSART2_DefaultErrorHandler(void){
+    EUSART2_RxDataHandler();
+}
+
+void EUSART2_SetFramingErrorHandler(void (* interruptHandler)(void)){
+    EUSART2_FramingErrorHandler = interruptHandler;
+}
+
+void EUSART2_SetOverrunErrorHandler(void (* interruptHandler)(void)){
+    EUSART2_OverrunErrorHandler = interruptHandler;
+}
+
+void EUSART2_SetErrorHandler(void (* interruptHandler)(void)){
+    EUSART2_ErrorHandler = interruptHandler;
 }
 
 void EUSART2_SetTxInterruptHandler(void (* interruptHandler)(void)){

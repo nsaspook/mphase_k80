@@ -13,12 +13,12 @@
   @Description
     This header file provides APIs for driver for .
     Generation Information :
-        Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs - 1.65.2
+        Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs - 1.81.6
         Device            :  PIC18F45K80
         Driver Version    :  2.11
     The generated drivers are tested against the following:
-        Compiler          :  XC8 1.45
-        MPLAB 	          :  MPLAB X 4.15	
+        Compiler          :  XC8 2.30 and above
+        MPLAB 	          :  MPLAB X 5.40	
 */
 
 /*
@@ -46,6 +46,12 @@
 
 #ifndef PIN_MANAGER_H
 #define PIN_MANAGER_H
+
+/**
+  Section: Included Files
+*/
+
+#include <xc.h>
 
 #define INPUT   1
 #define OUTPUT  0
@@ -199,38 +205,29 @@
 #define IO_RB3_SetPullup()          do { WPUBbits.WPUB3 = 1; } while(0)
 #define IO_RB3_ResetPullup()        do { WPUBbits.WPUB3 = 0; } while(0)
 
-// get/set SCK aliases
-#define SCK_TRIS                 TRISCbits.TRISC3
-#define SCK_LAT                  LATCbits.LATC3
-#define SCK_PORT                 PORTCbits.RC3
-#define SCK_SetHigh()            do { LATCbits.LATC3 = 1; } while(0)
-#define SCK_SetLow()             do { LATCbits.LATC3 = 0; } while(0)
-#define SCK_Toggle()             do { LATCbits.LATC3 = ~LATCbits.LATC3; } while(0)
-#define SCK_GetValue()           PORTCbits.RC3
-#define SCK_SetDigitalInput()    do { TRISCbits.TRISC3 = 1; } while(0)
-#define SCK_SetDigitalOutput()   do { TRISCbits.TRISC3 = 0; } while(0)
+// get/set RC3 procedures
+#define RC3_SetHigh()            do { LATCbits.LATC3 = 1; } while(0)
+#define RC3_SetLow()             do { LATCbits.LATC3 = 0; } while(0)
+#define RC3_Toggle()             do { LATCbits.LATC3 = ~LATCbits.LATC3; } while(0)
+#define RC3_GetValue()              PORTCbits.RC3
+#define RC3_SetDigitalInput()    do { TRISCbits.TRISC3 = 1; } while(0)
+#define RC3_SetDigitalOutput()   do { TRISCbits.TRISC3 = 0; } while(0)
 
-// get/set SDI aliases
-#define SDI_TRIS                 TRISCbits.TRISC4
-#define SDI_LAT                  LATCbits.LATC4
-#define SDI_PORT                 PORTCbits.RC4
-#define SDI_SetHigh()            do { LATCbits.LATC4 = 1; } while(0)
-#define SDI_SetLow()             do { LATCbits.LATC4 = 0; } while(0)
-#define SDI_Toggle()             do { LATCbits.LATC4 = ~LATCbits.LATC4; } while(0)
-#define SDI_GetValue()           PORTCbits.RC4
-#define SDI_SetDigitalInput()    do { TRISCbits.TRISC4 = 1; } while(0)
-#define SDI_SetDigitalOutput()   do { TRISCbits.TRISC4 = 0; } while(0)
+// get/set RC4 procedures
+#define RC4_SetHigh()            do { LATCbits.LATC4 = 1; } while(0)
+#define RC4_SetLow()             do { LATCbits.LATC4 = 0; } while(0)
+#define RC4_Toggle()             do { LATCbits.LATC4 = ~LATCbits.LATC4; } while(0)
+#define RC4_GetValue()              PORTCbits.RC4
+#define RC4_SetDigitalInput()    do { TRISCbits.TRISC4 = 1; } while(0)
+#define RC4_SetDigitalOutput()   do { TRISCbits.TRISC4 = 0; } while(0)
 
-// get/set SDO aliases
-#define SDO_TRIS                 TRISCbits.TRISC5
-#define SDO_LAT                  LATCbits.LATC5
-#define SDO_PORT                 PORTCbits.RC5
-#define SDO_SetHigh()            do { LATCbits.LATC5 = 1; } while(0)
-#define SDO_SetLow()             do { LATCbits.LATC5 = 0; } while(0)
-#define SDO_Toggle()             do { LATCbits.LATC5 = ~LATCbits.LATC5; } while(0)
-#define SDO_GetValue()           PORTCbits.RC5
-#define SDO_SetDigitalInput()    do { TRISCbits.TRISC5 = 1; } while(0)
-#define SDO_SetDigitalOutput()   do { TRISCbits.TRISC5 = 0; } while(0)
+// get/set RC5 procedures
+#define RC5_SetHigh()            do { LATCbits.LATC5 = 1; } while(0)
+#define RC5_SetLow()             do { LATCbits.LATC5 = 0; } while(0)
+#define RC5_Toggle()             do { LATCbits.LATC5 = ~LATCbits.LATC5; } while(0)
+#define RC5_GetValue()              PORTCbits.RC5
+#define RC5_SetDigitalInput()    do { TRISCbits.TRISC5 = 1; } while(0)
+#define RC5_SetDigitalOutput()   do { TRISCbits.TRISC5 = 0; } while(0)
 
 // get/set RC6 procedures
 #define RC6_SetHigh()            do { LATCbits.LATC6 = 1; } while(0)

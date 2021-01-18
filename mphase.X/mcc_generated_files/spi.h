@@ -1,24 +1,24 @@
 /**
-  MSSP Generated Driver API Header File
-  
+  SPI Generated Driver API Header File
+
   @Company
     Microchip Technology Inc.
 
   @File Name
     spi.h
-	
+
   @Summary
-    This is the generated header file for the MSSP driver using PIC10 / PIC12 / PIC16 / PIC18 MCUs
+    This is the generated header file for the SPI driver using PIC10 / PIC12 / PIC16 / PIC18 MCUs
 
   @Description
     This header file provides APIs for driver for SPI.
     Generation Information :
-        Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs - 1.65.2
+        Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs - 1.81.6
         Device            :  PIC18F45K80
-        Driver Version    :  2.02
+        Driver Version    :  1.0.0
     The generated drivers are tested against the following:
-        Compiler          :  XC8 1.45
-        MPLAB 	          :  MPLAB X 4.15
+        Compiler          :  XC8 2.30 and above or later
+        MPLAB             :  MPLAB X 5.40
 */
 
 /*
@@ -44,232 +44,30 @@
     SOFTWARE.
 */
 
-#ifndef _SPI_H
-#define _SPI_H
+#ifndef SPI_H
+#define SPI_H
 
 /**
   Section: Included Files
 */
 
-#include <stdbool.h>
-#include <stddef.h>
+#include <stdio.h>
 #include <stdint.h>
+#include <stdbool.h>
 
-#ifdef __cplusplus  // Provide C++ Compatibility
+/* SPI interfaces */
+typedef enum { 
+    SPI_DEFAULT
+} spi_modes_t;
 
-    extern "C" {
-
-#endif
-
-/**
-  Section: Macro Declarations
-*/
-
-#define SPI_DUMMY_DATA 0x0
-
-/**
-  Section: SPI Module APIs
-*/
-
-/**
-  @Summary
-    Initializes the SPI
-
-  @Description
-    This routine initializes the SPI.
-    This routine must be called before any other MSSP routine is called.
-    This routine should only be called once during system initialization.
-
-  @Preconditions
-    None
-
-  @Param
-    None
-
-  @Returns
-    None
-
-  @Comment
-    
-
-  @Example
-    <code>
-    uint8_t     myWriteBuffer[MY_BUFFER_SIZE];
-    uint8_t     myReadBuffer[MY_BUFFER_SIZE];
-    uint8_t     writeData;
-    uint8_t     readData;
-    uint8_t     total;
-
-    SPI_Initialize();
-
-    total = 0;
-    do
-    {
-        total = SPI_Exchange8bitBuffer(&myWriteBuffer[total], MY_BUFFER_SIZE - total, &myWriteBuffer[total]);
-
-        // Do something else...
-
-    } while(total < MY_BUFFER_SIZE);
-
-    readData = SPI_Exchange8bit(writeData);
-    </code>
- */
 void SPI_Initialize(void);
+bool SPI_Open(spi_modes_t spiUniqueConfiguration);
+void SPI_Close(void);
+uint8_t SPI_ExchangeByte(uint8_t data);
+void SPI_ExchangeBlock(void *block, size_t blockSize);
+void SPI_WriteBlock(void *block, size_t blockSize);
+void SPI_ReadBlock(void *block, size_t blockSize);
+void SPI_WriteByte(uint8_t byte);
+uint8_t SPI_ReadByte(void);
 
-/**
-  @Summary
-    Exchanges a data byte over SPI
-
-  @Description
-    This routine exchanges a data byte over SPI bus.
-    This is a blocking routine.
-
-  @Preconditions
-    The SPI_Initialize() routine should be called
-    prior to use this routine.
-
-  @Param
-    data - data byte to be transmitted over SPI bus
-
-  @Returns
-    The received byte over SPI bus
-
-  @Example
-    <code>
-    uint8_t     writeData;
-    uint8_t     readData;
-    uint8_t     readDummy;
-
-    SPI_Initialize();
-
-    // for transmission over SPI bus
-    readDummy = SPI_Exchange8bit(writeData);
-
-    // for reception over SPI bus
-    readData = SPI_Exchange8bit(SPI_DUMMY_DATA);
-    </code>
- */
-uint8_t SPI_Exchange8bit(uint8_t data);
-
- /**
-  @Summary
-    Exchanges buffer of data over SPI
-
-  @Description
-    This routine exchanges buffer of data (of size one byte) over SPI bus.
-    This is a blocking routine.
-
-  @Preconditions
-    The SPI_Initialize() routine should be called
-    prior to use this routine.
-
-  @Param
-    dataIn  - Buffer of data to be transmitted over SPI.
-    bufLen  - Number of bytes to be exchanged.
-    dataOut - Buffer of data to be received over SPI.
-
-  @Returns
-    Number of bytes exchanged over SPI.
-
-  @Example
-    <code>
-    uint8_t     myWriteBuffer[MY_BUFFER_SIZE];
-    uint8_t     myReadBuffer[MY_BUFFER_SIZE];
-    uint8_t     total;
-
-    SPI_Initialize();
-
-    total = 0;
-    do
-    {
-        total = SPI_Exchange8bitBuffer(&myWriteBuffer[total], MY_BUFFER_SIZE - total, &myWriteBuffer[total]);
-
-        // Do something else...
-
-    } while(total < MY_BUFFER_SIZE);
-    </code>
- */
-uint8_t SPI_Exchange8bitBuffer(uint8_t *dataIn, uint8_t bufLen, uint8_t *dataOut);
-
-/**
-  @Summary
-    Gets the SPI buffer full status
-
-  @Description
-    This routine gets the SPI buffer full status
-
-  @Preconditions
-    The SPI_Initialize() routine should be called
-    prior to use this routine.
-
-  @Param
-    None
-
-  @Returns
-    true  - if the buffer is full
-    false - if the buffer is not full.
-
-  @Example
-    Refer to SPI_Initialize() for an example
- */
-bool SPI_IsBufferFull(void);
-
-/**
-  @Summary
-    Gets the status of write collision.
-
-  @Description
-    This routine gets the status of write collision.
-
-  @Preconditions
-    The SPI_Initialize() routine must have been called prior to use this routine.
-
-  @Param
-    None
-
-  @Returns
-    true  - if the write collision has occurred.
-    false - if the write collision has not occurred.
-
-  @Example
-    if(SPI_HasWriteCollisionOccured())
-    {
-        SPI_ClearWriteCollisionStatus();
-    }
-*/
-bool SPI_HasWriteCollisionOccured(void);
-
-/**
-  @Summary
-    Clears the status of write collision.
-
-  @Description
-    This routine clears the status of write collision.
-
-  @Preconditions
-    The SPI_Initialize() routine must have been called prior to use this routine.
-
-  @Param
-    None
-
-  @Returns
-    None
-
-  @Example
-    if(SPI_HasWriteCollisionOccured())
-    {
-        SPI_ClearWriteCollisionStatus();
-    }
-*/
-void SPI_ClearWriteCollisionStatus(void);
-
-#ifdef __cplusplus  // Provide C++ Compatibility
-
-    }
-
-#endif
-
-#endif // _SPI_H
-/**
- End of File
-*/
+#endif //SPI_H

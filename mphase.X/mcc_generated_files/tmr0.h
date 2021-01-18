@@ -13,12 +13,12 @@
   @Description
     This header file provides APIs for TMR0.
     Generation Information :
-        Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs - 1.65.2
+        Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs - 1.81.6
         Device            :  PIC18F45K80
         Driver Version    :  2.01
     The generated drivers are tested against the following:
-        Compiler          :  XC8 1.45
-        MPLAB 	          :  MPLAB X 4.15
+        Compiler          :  XC8 2.30 and above
+        MPLAB 	          :  MPLAB X 5.40
 */
 
 /*
@@ -161,12 +161,13 @@ void TMR0_StartTimer(void);
 */
 void TMR0_StopTimer(void);
 
+
 /**
   @Summary
-    Reads the 8 bits TMR0 register value.
+    Reads the 16 bits TMR0 register value.
 
   @Description
-    This function reads the 8 bits TMR0 register value and return it.
+    This function reads the 16 bits TMR0 register value and return it.
 
   @Preconditions
     Initialize  the TMR0 before calling this function.
@@ -175,7 +176,7 @@ void TMR0_StopTimer(void);
     None
 
   @Returns
-    This function returns the 8 bits value of TMR0 register.
+    This function returns the 16 bits value of TMR0 register.
 
   @Example
     <code>
@@ -198,10 +199,10 @@ uint16_t TMR0_ReadTimer(void);
 
 /**
   @Summary
-    Writes the 8 bits value to TMR0 register.
+    Writes the 16 bits value to TMR0 register.
 
   @Description
-    This function writes the 8 bits value to TMR0 register.
+    This function writes the 16 bits value to TMR0 register.
     This function must be called after the initialization of TMR0.
 
   @Preconditions
@@ -215,12 +216,12 @@ uint16_t TMR0_ReadTimer(void);
 
   @Example
     <code>
-    #define PERIOD 0x80
-    #define ZERO   0x00
+    #define PERIOD 0x8000
+    #define ZERO   0x0000
 
     while(1)
     {
-        // Read the TMR0 register
+        //Read the TMR0 register
         if(ZERO == TMR0_ReadTimer())
         {
             // Do something else...
@@ -237,10 +238,10 @@ void TMR0_WriteTimer(uint16_t timerVal);
 
 /**
   @Summary
-    Reload the 8 bits value to TMR0 register.
+    Reload the 16 bits value to TMR0 register.
 
   @Description
-    This function reloads the 8 bit value to TMR0 register.
+    This function reloads the 16 bit value to TMR0 register.
     This function must be called to write initial value into TMR0 register.
 
   @Preconditions

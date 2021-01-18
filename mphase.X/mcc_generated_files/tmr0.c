@@ -13,12 +13,12 @@
   @Description
     This source file provides APIs for TMR0.
     Generation Information :
-	Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs - 1.65.2
+        Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs - 1.81.6
 	Device            :  PIC18F45K80
 	Driver Version    :  2.01
     The generated drivers are tested against the following:
-	Compiler          :  XC8 1.45
-	MPLAB 	          :  MPLAB X 4.15
+        Compiler          :  XC8 2.30 and above
+        MPLAB 	          :  MPLAB X 5.40
  */
 
 /*
@@ -83,7 +83,7 @@ void TMR0_Initialize(void)
 	timer0ReloadVal = 96;
 
 	// Load TMR0 value to the 16-bit reload variable
-	timer0ReloadVal = (uint16_t) ((TMR0H << 8) | TMR0L);
+    timer0ReloadVal = (uint16_t)((TMR0H << 8) | TMR0L);
 
 	// Clear Interrupt flag before enabling the interrupt
 	INTCONbits.TMR0IF = 0;
@@ -116,9 +116,9 @@ uint16_t TMR0_ReadTimer(void)
 	uint8_t readValLow;
 	uint8_t readValHigh;
 
-	readValLow = TMR0L;
+    readValLow  = TMR0L;
 	readValHigh = TMR0H;
-	readVal = ((uint16_t) readValHigh << 8) + readValLow;
+    readVal  = ((uint16_t)readValHigh << 8) + readValLow;
 
 	return readVal;
 }
@@ -148,21 +148,20 @@ void TMR0_ISR(void)
 	TMR0H = timer0ReloadVal >> 8;
 	TMR0L = (uint8_t) timer0ReloadVal;
 
-	if (TMR0_InterruptHandler) {
+    if(TMR0_InterruptHandler)
+    {
 		TMR0_InterruptHandler();
 	}
 
 	// add your TMR0 interrupt custom code
 }
 
-void TMR0_SetInterruptHandler(void (* InterruptHandler)(void))
-{
+
+void TMR0_SetInterruptHandler(void (* InterruptHandler)(void)){
 	TMR0_InterruptHandler = InterruptHandler;
 }
 
-// switch pressed time delays
-void TMR0_DefaultInterruptHandler(void)
-{
+void TMR0_DefaultInterruptHandler(void){
 	// add your TMR0 interrupt custom code
 	// or set custom function using TMR0_SetInterruptHandler()
 

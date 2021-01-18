@@ -13,12 +13,12 @@
   @Description
     This source file provides APIs for EUSART1.
     Generation Information :
-	Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs - 1.65.2
+        Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs - 1.81.6
 	Device            :  PIC18F45K80
-	Driver Version    :  2.01
+        Driver Version    :  2.1.0
     The generated drivers are tested against the following:
-	Compiler          :  XC8 1.45
-	MPLAB 	          :  MPLAB X 4.15
+        Compiler          :  XC8 2.30 and above
+        MPLAB 	          :  MPLAB X 5.40
  */
 
 /*
@@ -69,11 +69,24 @@ volatile uint8_t eusart1TxBufferRemaining;
 volatile uint8_t eusart1RxHead = 0;
 volatile uint8_t eusart1RxTail = 0;
 volatile uint8_t eusart1RxBuffer[EUSART1_RX_BUFFER_SIZE];
+volatile eusart1_status_t eusart1RxStatusBuffer[EUSART1_RX_BUFFER_SIZE];
 volatile uint8_t eusart1RxCount;
+volatile eusart1_status_t eusart1RxLastError;
 
 /**
   Section: EUSART1 APIs
  */
+void (*EUSART1_TxDefaultInterruptHandler)(void);
+void (*EUSART1_RxDefaultInterruptHandler)(void);
+
+void (*EUSART1_FramingErrorHandler)(void);
+void (*EUSART1_OverrunErrorHandler)(void);
+void (*EUSART1_ErrorHandler)(void);
+
+void EUSART1_DefaultFramingErrorHandler(void);
+void EUSART1_DefaultOverrunErrorHandler(void);
+void EUSART1_DefaultErrorHandler(void);
+
 void EUSART1_Initialize(void)
 {
 	// disable interrupts before changing states
@@ -99,6 +112,12 @@ void EUSART1_Initialize(void)
 	SPBRGH1 = 0x06;
 
 
+    EUSART1_SetFramingErrorHandler(EUSART1_DefaultFramingErrorHandler);
+    EUSART1_SetOverrunErrorHandler(EUSART1_DefaultOverrunErrorHandler);
+    EUSART1_SetErrorHandler(EUSART1_DefaultErrorHandler);
+
+    eusart1RxLastError.status = 0;
+
 	// initializing the driver state
 	eusart1TxHead = 0;
 	eusart1TxTail = 0;
@@ -112,15 +131,14 @@ void EUSART1_Initialize(void)
 	PIE1bits.RC1IE = 1;
 }
 
-uint8_t EUSART1_is_tx_ready(void)
+bool EUSART1_is_tx_ready(void)
 {
-	return eusart1TxBufferRemaining;
+    return (eusart1TxBufferRemaining ? true : false);
 }
 
-uint8_t EUSART1_is_rx_ready(void)
+bool EUSART1_is_rx_ready(void)
 {
-
-	return eusart1RxCount;
+    return (eusart1RxCount ? true : false);
 }
 
 bool EUSART1_is_tx_done(void)
@@ -128,15 +146,23 @@ bool EUSART1_is_tx_done(void)
 	return TXSTA1bits.TRMT;
 }
 
+eusart1_status_t EUSART1_get_last_status(void){
+    return eusart1RxLastError;
+}
+
 uint8_t EUSART1_Read(void)
 {
-	uint8_t readValue = 0;
+    uint8_t readValue  = 0;
 
-	while (0 == eusart1RxCount) {
+    while(0 == eusart1RxCount)
+    {
 	}
 
+    eusart1RxLastError = eusart1RxStatusBuffer[eusart1RxTail];
+
 	readValue = eusart1RxBuffer[eusart1RxTail++];
-	if (sizeof(eusart1RxBuffer) <= eusart1RxTail) {
+    if(sizeof(eusart1RxBuffer) <= eusart1RxTail)
+    {
 		eusart1RxTail = 0;
 	}
 	PIE1bits.RC1IE = 0;
@@ -148,15 +174,20 @@ uint8_t EUSART1_Read(void)
 
 void EUSART1_Write(uint8_t txData)
 {
-	while (0 == eusart1TxBufferRemaining) {
+    while(0 == eusart1TxBufferRemaining)
+    {
 	}
 
-	if (0 == PIE1bits.TX1IE) {
+    if(0 == PIE1bits.TX1IE)
+    {
 		TXREG1 = txData;
-	} else {
+    }
+    else
+    {
 		PIE1bits.TX1IE = 0;
 		eusart1TxBuffer[eusart1TxHead++] = txData;
-		if (sizeof(eusart1TxBuffer) <= eusart1TxHead) {
+        if(sizeof(eusart1TxBuffer) <= eusart1TxHead)
+        {
 			eusart1TxHead = 0;
 		}
 		eusart1TxBufferRemaining--;
@@ -164,56 +195,91 @@ void EUSART1_Write(uint8_t txData)
 	PIE1bits.TX1IE = 1;
 }
 
+
 void EUSART1_Transmit_ISR(void)
 {
 
 	// add your EUSART1 interrupt custom code
-	if (sizeof(eusart1TxBuffer) > eusart1TxBufferRemaining) {
+    if(sizeof(eusart1TxBuffer) > eusart1TxBufferRemaining)
+    {
 		TXREG1 = eusart1TxBuffer[eusart1TxTail++];
-		if (sizeof(eusart1TxBuffer) <= eusart1TxTail) {
+        if(sizeof(eusart1TxBuffer) <= eusart1TxTail)
+        {
 			eusart1TxTail = 0;
 		}
 		eusart1TxBufferRemaining++;
-	} else {
+    }
+    else
+    {
 		PIE1bits.TX1IE = 0;
 	}
 }
 
 void EUSART1_Receive_ISR(void)
 {
-	uint8_t treg;
-	if (1 == RCSTA1bits.OERR) {
+    
+    eusart1RxStatusBuffer[eusart1RxHead].status = 0;
+
+    if(RCSTA1bits.FERR){
+        eusart1RxStatusBuffer[eusart1RxHead].ferr = 1;
+        EUSART1_FramingErrorHandler();
+    }
+
+    if(RCSTA1bits.OERR){
+        eusart1RxStatusBuffer[eusart1RxHead].oerr = 1;
+        EUSART1_OverrunErrorHandler();
+    }
+    
+    if(eusart1RxStatusBuffer[eusart1RxHead].status){
+        EUSART1_ErrorHandler();
+    } else {
+        EUSART1_RxDataHandler();
+    }
+    
+    // or set custom function using EUSART1_SetRxInterruptHandler()
+}
+
+void EUSART1_RxDataHandler(void){
+    // use this default receive interrupt handler code
+    eusart1RxBuffer[eusart1RxHead++] = RCREG1;
+    if(sizeof(eusart1RxBuffer) <= eusart1RxHead)
+    {
+        eusart1RxHead = 0;
+    }
+    eusart1RxCount++;
+}
+
+void EUSART1_DefaultFramingErrorHandler(void){}
+
+void EUSART1_DefaultOverrunErrorHandler(void){
 		// EUSART1 error - restart
 
 		RCSTA1bits.CREN = 0;
 		RCSTA1bits.CREN = 1;
+
 	}
 
-	// buffer overruns are ignored
-	treg = RCREG1;
-	/*
-	 * ignore MC prompt chars
-	 */
-#ifdef	COOKED_MC
-	if ((treg != '-') && (treg != '>')) {
-#endif
-		eusart1RxBuffer[eusart1RxHead++] = treg;
-		if (sizeof(eusart1RxBuffer) <= eusart1RxHead) {
-			eusart1RxHead = 0;
+void EUSART1_DefaultErrorHandler(void){
+    EUSART1_RxDataHandler();
 		}
-		eusart1RxCount++;
-#ifdef	COOKED_MC
+
+void EUSART1_SetFramingErrorHandler(void (* interruptHandler)(void)){
+    EUSART1_FramingErrorHandler = interruptHandler;
 	}
-#endif
+
+void EUSART1_SetOverrunErrorHandler(void (* interruptHandler)(void)){
+    EUSART1_OverrunErrorHandler = interruptHandler;
 }
 
-void EUSART1_SetTxInterruptHandler(void (* interruptHandler)(void))
-{
+void EUSART1_SetErrorHandler(void (* interruptHandler)(void)){
+    EUSART1_ErrorHandler = interruptHandler;
+}
+
+void EUSART1_SetTxInterruptHandler(void (* interruptHandler)(void)){
 	EUSART1_TxDefaultInterruptHandler = interruptHandler;
 }
 
-void EUSART1_SetRxInterruptHandler(void (* interruptHandler)(void))
-{
+void EUSART1_SetRxInterruptHandler(void (* interruptHandler)(void)){
 	EUSART1_RxDefaultInterruptHandler = interruptHandler;
 }
 /**

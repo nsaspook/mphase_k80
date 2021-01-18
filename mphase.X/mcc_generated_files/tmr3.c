@@ -13,12 +13,12 @@
   @Description
     This source file provides APIs for TMR3.
     Generation Information :
-	Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs - 1.65.2
+        Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs - 1.81.6
 	Device            :  PIC18F45K80
 	Driver Version    :  2.11
     The generated drivers are tested against the following:
-	Compiler          :  XC8 1.45
-	MPLAB 	          :  MPLAB X 4.15
+        Compiler          :  XC8 2.30 and above
+        MPLAB 	          :  MPLAB X 5.40
  */
 
 /*
@@ -33,7 +33,7 @@
     EXPRESS, IMPLIED OR STATUTORY, APPLY TO THIS SOFTWARE, INCLUDING ANY 
     IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY, AND FITNESS 
     FOR A PARTICULAR PURPOSE.
-    :0:: error: (500) undefined symbols:
+    
     IN NO EVENT WILL MICROCHIP BE LIABLE FOR ANY INDIRECT, SPECIAL, PUNITIVE, 
     INCIDENTAL OR CONSEQUENTIAL LOSS, DAMAGE, COST OR EXPENSE OF ANY KIND 
     WHATSOEVER RELATED TO THE SOFTWARE, HOWEVER CAUSED, EVEN IF MICROCHIP 
@@ -75,11 +75,11 @@ void TMR3_Initialize(void)
 	//TMR3L 96; 
 	TMR3L = 0x60;
 
-	// Load the TMR value to reload variable
-	timer3ReloadVal = (uint16_t) ((TMR3H << 8) | TMR3L);
-
 	// Clearing IF flag before enabling the interrupt.
 	PIR2bits.TMR3IF = 0;
+
+    // Load the TMR value to reload variable
+    timer3ReloadVal=(uint16_t)((TMR3H << 8) | TMR3L);
 
 	// Enabling TMR3 interrupt.
 	PIE2bits.TMR3IE = 1;
@@ -113,14 +113,15 @@ uint16_t TMR3_ReadTimer(void)
 	readValLow = TMR3L;
 	readValHigh = TMR3H;
 
-	readVal = ((uint16_t) readValHigh << 8) | readValLow;
+    readVal = ((uint16_t)readValHigh << 8) | readValLow;
 
 	return readVal;
 }
 
 void TMR3_WriteTimer(uint16_t timerVal)
 {
-	if (T3CONbits.nT3SYNC == 1) {
+    if (T3CONbits.nT3SYNC == 1)
+    {
 		// Stop the Timer by writing to TMRxON bit
 		T3CONbits.TMR3ON = 0;
 
@@ -129,8 +130,10 @@ void TMR3_WriteTimer(uint16_t timerVal)
 		TMR3L = timerVal;
 
 		// Start the Timer after writing to the register
-		T3CONbits.TMR3ON = 1;
-	} else {
+        T3CONbits.TMR3ON =1;
+    }
+    else
+    {
 		// Write to the Timer3 register
 		TMR3H = (timerVal >> 8);
 		TMR3L = timerVal;
@@ -149,7 +152,7 @@ void TMR3_StartSinglePulseAcquisition(void)
 
 uint8_t TMR3_CheckGateValueStatus(void)
 {
-	return(T3GCONbits.T3GVAL);
+    return (T3GCONbits.T3GVAL);
 }
 
 void TMR3_ISR(void)
@@ -159,18 +162,18 @@ void TMR3_ISR(void)
 	PIR2bits.TMR3IF = 0;
 	TMR3_WriteTimer(timer3ReloadVal+chirp++); // sweep the sound a bit
 
-	if (TMR3_InterruptHandler) {
+    if(TMR3_InterruptHandler)
+    {
 		TMR3_InterruptHandler();
 	}
 }
 
-void TMR3_SetInterruptHandler(void (* InterruptHandler)(void))
-{
+
+void TMR3_SetInterruptHandler(void (* InterruptHandler)(void)){
 	TMR3_InterruptHandler = InterruptHandler;
 }
 
-void TMR3_DefaultInterruptHandler(void)
-{
+void TMR3_DefaultInterruptHandler(void){
 	// add your TMR3 interrupt custom code
 	// or set custom function using TMR3_SetInterruptHandler()
 	IO_RA5_Toggle(); // speaker
