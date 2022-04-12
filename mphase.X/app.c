@@ -338,10 +338,10 @@ void APP_Tasks(void)
 		break;
 	case APP_DONE:
 		while (true) {
-			sprintf(mc_response, rs_text->line_b0);
+			sprintf(mc_response, "%s", rs_text->line_b0);
 			display_ea_line(mc_response);
 			WaitMs(100);
-			sprintf(mc_response, rs_text->line_b1);
+			sprintf(mc_response, "%s", rs_text->line_b1);
 			display_ea_line(mc_response);
 			WaitMs(1000);
 			sprintf(mc_response, rs_text->line_m, offset);
@@ -363,7 +363,7 @@ void APP_Tasks(void)
 		appData.mc = MC_BOOT;
 		appData.got_packet = true;
 		display_ea_ff(1);
-		sprintf(appData.receive_packet, cr_text->bootb);
+		sprintf(appData.receive_packet, "%s", cr_text->bootb);
 		WaitMs(25);
 	}
 	BUZZER_OFF;
