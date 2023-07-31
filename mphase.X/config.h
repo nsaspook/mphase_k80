@@ -4,7 +4,7 @@
 #include "mcc_generated_files/pin_manager.h"
 #include "mcc_generated_files/tmr3.h"
 
-#define APP_VERSION_STR "1.2"		//This firmware version
+#define APP_VERSION_STR "1.3"		//This firmware version
 #define PRODUCTION
 
 #define SIZE_TxBuffer   64		//MC_command max string length
@@ -28,5 +28,8 @@
 
 #define	BADNUM		666
 #define	BADNUM2		999
+
+#define BAUD38H		0x01
+#define BAUD38		0xA0
 
 #endif //CONFIG_H
