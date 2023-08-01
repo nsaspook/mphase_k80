@@ -46,12 +46,12 @@ typedef struct {
 	char receive_packet[MC_RX_PKT_SZ]; //message buffers
 	bool got_packet; //new packet flag
 	int8_t error_code;
-	volatile bool sw1, sw2, sw3, sw4; //switch states
+	volatile bool sw1, sw2, sw3, sw4, csw0, csw1; //switch states
 	uint8_t sw1Changed, sw2Changed, sw3Changed, sw4Changed; //switch state has changed
 } APP_DATA;
 
 struct CR_DATA {
-	const char *headder, *bootb, *buttonp, *blank, *pressb,
+	const char *headder, *bootb, *buttonp, *blank, *pressbh, *pressbs,
 	*c1, *r1,
 	*c2, *r2,
 	*c3, *r3,

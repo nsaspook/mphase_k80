@@ -39,6 +39,20 @@ static bool APP_Initialize(void)
 {
 	TMR1_StartTimer();
 	TMR0_StartTimer();
+	appData.csw0 = CSW0_GetValue();
+	appData.csw1 = CSW1_GetValue();
+
+	if (appData.csw1) {
+		if (SPBRG1 != BAUD9) {
+			SPBRG1 = BAUD9;
+			SPBRGH1 = BAUD9H;
+		}
+	} else {
+		if (SPBRG1 != BAUD38) {
+			SPBRG1 = BAUD38;
+			SPBRGH1 = BAUD38H;
+		}
+	}
 
 	SLED = 1; // init completed
 	return true;
@@ -330,7 +344,21 @@ void APP_Tasks(void)
 				display_ea_line(mc_response);
 				sprintf(mc_response, cr_text->line3, __TIME__);
 				display_ea_line(mc_response);
-				sprintf(mc_response, cr_text->line1, cr_text->pressb);
+				appData.csw0 = CSW0_GetValue();
+				appData.csw1 = CSW1_GetValue();
+				if (appData.csw1) {
+					sprintf(mc_response, cr_text->line1, cr_text->pressbs);
+					if (SPBRG1 != BAUD9) {
+						SPBRG1 = BAUD9;
+						SPBRGH1 = BAUD9H;
+					}
+				} else {
+					sprintf(mc_response, cr_text->line1, cr_text->pressbh);
+					if (SPBRG1 != BAUD38) {
+						SPBRG1 = BAUD38;
+						SPBRGH1 = BAUD38H;
+					}
+				}
 				display_ea_line(mc_response);
 			}
 			StartTimer(TMR_DIS, DIS_REFRESH_MS);

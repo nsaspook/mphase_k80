@@ -33,4 +33,4 @@ MP_CC_DIR="/opt/microchip/xc8/v2.41/bin"
 MP_AS_DIR="/opt/microchip/xc8/v2.41/bin"
 MP_LD_DIR="/opt/microchip/xc8/v2.41/bin"
 MP_AR_DIR="/opt/microchip/xc8/v2.41/bin"
-DFP_DIR=/root/.mchp_packs/Microchip/PIC18F-K_DFP/1.10.277
+DFP_DIR=/root/.mchp_packs/Microchip/PIC18F-K_DFP/1.11.281
