@@ -57,8 +57,8 @@
 #include "tmr3.h"
 #include "tmr1.h"
 #include "tmr0.h"
-#include "ext_int.h"
 #include "memory.h"
+#include "ext_int.h"
 #include "eusart2.h"
 #include "eusart1.h"
 

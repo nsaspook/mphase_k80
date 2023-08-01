@@ -245,6 +245,62 @@
 #define RC7_SetDigitalInput()    do { TRISCbits.TRISC7 = 1; } while(0)
 #define RC7_SetDigitalOutput()   do { TRISCbits.TRISC7 = 0; } while(0)
 
+// get/set CSW0 aliases
+#define CSW0_TRIS                 TRISDbits.TRISD0
+#define CSW0_LAT                  LATDbits.LATD0
+#define CSW0_PORT                 PORTDbits.RD0
+#define CSW0_ANS                  ANCON1bits.ANSEL11
+#define CSW0_SetHigh()            do { LATDbits.LATD0 = 1; } while(0)
+#define CSW0_SetLow()             do { LATDbits.LATD0 = 0; } while(0)
+#define CSW0_Toggle()             do { LATDbits.LATD0 = ~LATDbits.LATD0; } while(0)
+#define CSW0_GetValue()           PORTDbits.RD0
+#define CSW0_SetDigitalInput()    do { TRISDbits.TRISD0 = 1; } while(0)
+#define CSW0_SetDigitalOutput()   do { TRISDbits.TRISD0 = 0; } while(0)
+#define CSW0_SetAnalogMode()      do { ANCON1bits.ANSEL11 = 1; } while(0)
+#define CSW0_SetDigitalMode()     do { ANCON1bits.ANSEL11 = 0; } while(0)
+
+// get/set CSW1 aliases
+#define CSW1_TRIS                 TRISDbits.TRISD1
+#define CSW1_LAT                  LATDbits.LATD1
+#define CSW1_PORT                 PORTDbits.RD1
+#define CSW1_ANS                  ANCON1bits.ANSEL12
+#define CSW1_SetHigh()            do { LATDbits.LATD1 = 1; } while(0)
+#define CSW1_SetLow()             do { LATDbits.LATD1 = 0; } while(0)
+#define CSW1_Toggle()             do { LATDbits.LATD1 = ~LATDbits.LATD1; } while(0)
+#define CSW1_GetValue()           PORTDbits.RD1
+#define CSW1_SetDigitalInput()    do { TRISDbits.TRISD1 = 1; } while(0)
+#define CSW1_SetDigitalOutput()   do { TRISDbits.TRISD1 = 0; } while(0)
+#define CSW1_SetAnalogMode()      do { ANCON1bits.ANSEL12 = 1; } while(0)
+#define CSW1_SetDigitalMode()     do { ANCON1bits.ANSEL12 = 0; } while(0)
+
+// get/set CSW2 aliases
+#define CSW2_TRIS                 TRISDbits.TRISD2
+#define CSW2_LAT                  LATDbits.LATD2
+#define CSW2_PORT                 PORTDbits.RD2
+#define CSW2_ANS                  ANCON1bits.ANSEL13
+#define CSW2_SetHigh()            do { LATDbits.LATD2 = 1; } while(0)
+#define CSW2_SetLow()             do { LATDbits.LATD2 = 0; } while(0)
+#define CSW2_Toggle()             do { LATDbits.LATD2 = ~LATDbits.LATD2; } while(0)
+#define CSW2_GetValue()           PORTDbits.RD2
+#define CSW2_SetDigitalInput()    do { TRISDbits.TRISD2 = 1; } while(0)
+#define CSW2_SetDigitalOutput()   do { TRISDbits.TRISD2 = 0; } while(0)
+#define CSW2_SetAnalogMode()      do { ANCON1bits.ANSEL13 = 1; } while(0)
+#define CSW2_SetDigitalMode()     do { ANCON1bits.ANSEL13 = 0; } while(0)
+
+// get/set CSW3 aliases
+#define CSW3_TRIS                 TRISDbits.TRISD3
+#define CSW3_LAT                  LATDbits.LATD3
+#define CSW3_PORT                 PORTDbits.RD3
+#define CSW3_ANS                  ANCON1bits.ANSEL14
+#define CSW3_SetHigh()            do { LATDbits.LATD3 = 1; } while(0)
+#define CSW3_SetLow()             do { LATDbits.LATD3 = 0; } while(0)
+#define CSW3_Toggle()             do { LATDbits.LATD3 = ~LATDbits.LATD3; } while(0)
+#define CSW3_GetValue()           PORTDbits.RD3
+#define CSW3_SetDigitalInput()    do { TRISDbits.TRISD3 = 1; } while(0)
+#define CSW3_SetDigitalOutput()   do { TRISDbits.TRISD3 = 0; } while(0)
+#define CSW3_SetAnalogMode()      do { ANCON1bits.ANSEL14 = 1; } while(0)
+#define CSW3_SetDigitalMode()     do { ANCON1bits.ANSEL14 = 0; } while(0)
+
 // get/set RD6 procedures
 #define RD6_SetHigh()            do { LATDbits.LATD6 = 1; } while(0)
 #define RD6_SetLow()             do { LATDbits.LATD6 = 0; } while(0)

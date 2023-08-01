@@ -39,8 +39,12 @@
  * timer 3: speaker sound generation
  * RA5 speaker driver pin
  * RA0 LED driver pin
- * usrt 1: motor controller comms
- * uart 2: LCD comms
+ * usart 1: motor controller comms
+ * 
+ * 38,400 16-bit baud rate 416  dec 0x01 0xA0
+ * 9,600  16-bit baud rate 1666 dec 0x06 0x82
+ * 
+ * usart 2: LCD comms
  * EXT INT 0: SW 1 push detect
  * EXT INT 1: SW 2 push detect
  * EXT INT 2: SW 3 push detect
