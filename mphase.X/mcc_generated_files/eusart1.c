@@ -106,10 +106,10 @@ void EUSART1_Initialize(void)
 	TXSTA1 = 0x24;
 
 	// 
-	SPBRG1 = 0x82;
+    SPBRG1 = 0x40;
 
 	// 
-	SPBRGH1 = 0x06;
+    SPBRGH1 = 0x03;
 
 
     EUSART1_SetFramingErrorHandler(EUSART1_DefaultFramingErrorHandler);
